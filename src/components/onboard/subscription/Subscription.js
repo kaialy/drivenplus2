@@ -1,0 +1,101 @@
+import styled from "styled-components";
+import axios from "axios";
+import {useState, useContext, useEffect} from 'react';
+import { useNavigate } from "react-router-dom";
+import UserContext from "../../../context/UserContext";
+import { Grid} from "react-loader-spinner";
+function Subscription () {
+    const navigate = useNavigate();
+    const {user,setUser} = useContext(UserContext);
+    const [plans, setPlans] = useState(null);
+    const config = {
+        headers: {
+          "Authorization": `Bearer ${user.token}`
+        }
+      };
+    useEffect(()=>{
+       const promise = axios.get('https://mock-api.driven.com.br/api/v4/driven-plus/subscriptions/memberships',config)
+        promise.then(response => setPlans(response.data))
+    },[])
+    
+    function loadIt (){
+        if(plans !== null){
+            return(
+                <>
+                <h1>Escolha seu Plano</h1>
+                {plans.map((element)=><Plan key={element.id} onClick={()=> choose(element.id)}>
+                    <img src={element.image} alt="Logo" />
+                    <p>R$ {element.price}</p>
+                </Plan> )}
+            </>
+            )
+        }
+        else{
+            return(
+                <Loading><Grid color="#FF4791" height={80} width={80} /></Loading>
+            )
+        }
+    }
+
+    function choose (id){ 
+        setUser({...user,plan:id})
+        navigate(`/subscriptions/${id}`)
+    }
+
+    const Load = loadIt();
+
+    return(
+        <Page>
+            {Load}
+        </Page>
+    )
+}
+const Page = styled.div`
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    background-color: #0E0E13;
+    font-family: 'Roboto';
+    font-weight: 700;
+    color: #FFFFFF;
+
+    h1{
+        font-size: 32px;
+        margin-bottom: 24px;
+    }
+`;
+
+const Plan = styled.div`
+    width: 290px;
+    height: 180px;
+    background: #0E0E13;
+    border: 3px solid #7E7E7E;
+    border-radius: 12px;
+    box-sizing: border-box;
+    padding: 0 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Roboto';
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 10px;
+
+    p{
+        font-size: 24px;
+    }
+
+`;
+
+const Loading = styled.div`
+    width: 290px;
+    height: 570px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`;
+
+export default Subscription
